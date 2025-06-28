@@ -1,2 +1,2 @@
-# -docker-android-test
-docker-android for testing 
+# docker-android-automation
+docker-android for automation using python 
