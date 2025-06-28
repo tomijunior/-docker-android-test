@@ -1,0 +1,57 @@
+services:
+  automation:
+    image: demisto/opencv:1.0.0.3252732
+    container_name: automation
+    networks:
+      grid:
+        ipv4_address:  172.18.0.5 
+    restart: always
+    #profiles:
+    #  - donotstart
+    working_dir: /scripts
+    depends_on:
+      appium-android:
+        condition: service_healthy
+    volumes:
+      - ./scripts:/scripts
+    command: 
+      - /bin/bash
+      - -c 
+      - tail -f /dev/null 
+      #-  python3 automation.py 
+  # Appium Android  
+  appium-android:
+    image: budtmo/docker-android:emulator_10.0 
+    container_name: appium-android
+    restart: always
+    networks:
+      grid:
+        ipv4_address:  172.18.0.3
+    healthcheck:
+      test: ["CMD", "/scripts/check_appium.sh"]
+      interval: 2s
+      retries: 120
+    volumes:
+      - ./scripts:/scripts
+    ports:
+      - 4723:4723  # appium
+      - 6080:6080  # webvnc
+      - 9001:9001  # web_log
+      #Open port 5554 and 5555 while running docker-android container ADB usage
+    environment:
+      - WEB_VNC=true
+      - WEB_LOG=true 
+      - WEB_LOG_PORT=9001 
+      - APPIUM=true
+      - EMULATOR_DEVICE=Samsung Galaxy S9
+    devices:
+      - /dev/kvm
+
+networks:
+  grid:
+    enable_ipv6: false
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/24
+          gateway: 172.18.0.1
